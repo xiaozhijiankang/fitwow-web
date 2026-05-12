@@ -1,92 +1,542 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FitWoW</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FitWoW — AI Rep Counter for Strength Training</title>
+<meta name="description" content="FitWoW counts every rep with your iPhone camera. Real-time AI rep counting, advanced workout insights, and an enhanced exercise library for strength training.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,500,1,0">
 <style>
-    :root { color-scheme: light dark; }
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        line-height: 1.6;
-        color: #242424;
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 60px 20px;
-        background: #fff;
-        text-align: center;
-    }
-    h1 { font-size: 32px; font-weight: 700; margin: 0 0 12px; }
-    p.tagline { color: #666; font-size: 16px; margin: 0 0 40px; }
-    section { margin-bottom: 40px; }
-    h2 {
-        font-size: 14px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.2px;
-        color: #888;
-        margin: 0 0 14px;
-    }
-    nav { display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin: 0 auto; }
-    a {
-        color: #0a7;
-        text-decoration: none;
-        font-size: 16px;
-        padding: 12px 18px;
-        border: 1px solid #e8e8e8;
-        border-radius: 12px;
-        display: block;
-        transition: background 0.15s;
-    }
-    a:hover { background: #f5f5f5; }
-    a.disabled {
-        color: #aaa;
-        cursor: not-allowed;
-        pointer-events: none;
-    }
-    footer { margin-top: 60px; color: #999; font-size: 13px; }
-    @media (prefers-color-scheme: dark) {
-        body { background: #000; color: #f5f5f5; }
-        p.tagline { color: #aaa; }
-        h2 { color: #777; }
-        a { border-color: #333; color: #4ec9b0; }
-        a:hover { background: #1a1a1a; }
-        a.disabled { color: #555; }
-        footer { color: #666; }
-    }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --brand: #059669;
+    --brand-dark: #047857;
+    --brand-light: #ECFDF5;
+    --hero-bg: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 60%, #FFFFFF 100%);
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-tertiary: #94A3B8;
+    --surface: #FFFFFF;
+    --surface-muted: #F8FAFC;
+    --border: #E2E8F0;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Device frame — pure CSS, wraps raw screenshot (1290x2796 ratio) */
+  .phone {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 1290 / 2796;
+    background: #1C1C1E;             /* device body — space black */
+    border-radius: 50px;
+    padding: 12px;
+    box-shadow:
+      0 30px 60px rgba(15,23,42,0.18),
+      0 0 0 1px rgba(255,255,255,0.04) inset;
+    margin: 0 auto;
+  }
+  .phone img {
+    width: 100%; height: 100%;
+    border-radius: 38px;
+    display: block;
+    object-fit: cover;
+  }
+  /* Dynamic Island (purely decorative overlay) */
+  .phone::before {
+    content: ""; position: absolute;
+    top: 18px; left: 50%; transform: translateX(-50%);
+    width: 92px; height: 28px;
+    background: #000;
+    border-radius: 14px;
+    z-index: 2;
+  }
+  .phone.lg { max-width: 380px; }
+
+  /* Nav */
+  nav.top {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(15,23,42,0.06);
+  }
+  nav.top .inner {
+    max-width: 1180px; margin: 0 auto; padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  /* High specificity to defeat `nav.top a { font-size: 14px }` cascade */
+  nav.top a.logo, .footer-brand a.logo {
+    font-weight: 900; letter-spacing: -0.035em;
+    display: inline-flex; align-items: center; gap: 14px;
+    text-decoration: none;
+    line-height: 1;
+  }
+  nav.top a.logo {
+    font-size: 34px;
+    color: var(--text-primary);
+  }
+  nav.top a.logo img {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: block;
+  }
+  /* Footer logo — smaller */
+  .footer-brand a.logo {
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    gap: 10px;
+  }
+  .footer-brand a.logo img {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: block;
+  }
+  /* Material Symbols base */
+  .ms {
+    font-family: 'Material Symbols Rounded';
+    font-weight: 500;
+    font-style: normal;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 48;
+  }
+  nav.top ul { list-style: none; display: flex; gap: 28px; align-items: center; }
+  nav.top a { color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500; }
+  nav.top a:hover { color: var(--brand); }
+  .btn-cta {
+    background: var(--brand); color: white !important;
+    padding: 10px 20px; border-radius: 10px;
+    font-size: 14px; font-weight: 600;
+    transition: background 0.15s;
+  }
+  .btn-cta:hover { background: var(--brand-dark); }
+
+  /* Hero */
+  section.hero {
+    background: var(--hero-bg);
+    padding: 80px 24px 100px;
+  }
+  .hero .inner {
+    max-width: 1180px; margin: 0 auto;
+    display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 64px; align-items: center;
+  }
+  .eyebrow {
+    color: var(--brand); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: 60px; line-height: 1.05; font-weight: 800;
+    letter-spacing: -0.03em; color: var(--text-primary);
+    margin-bottom: 20px;
+  }
+  h1 span { color: var(--brand); }
+  .hero p.lead {
+    font-size: 18px; color: var(--text-secondary);
+    margin-bottom: 28px; max-width: 480px; line-height: 1.6;
+  }
+  /* Hero pillars — quick-scan list from paywall 3 dimensions */
+  .hero-pillars {
+    display: grid; grid-template-columns: 1fr; gap: 14px;
+    margin-bottom: 32px; max-width: 520px;
+  }
+  .hero-pillar {
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .hero-pillar .icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: white; color: var(--brand);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(15,23,42,0.06);
+  }
+  .hero-pillar .icon .ms { font-size: 24px; }
+  .hero-pillar .txt strong {
+    display: block; font-size: 15px; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .hero-pillar .txt span {
+    font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;
+  }
+
+  .stores {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .store-btn {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: #0F172A; color: white; padding: 12px 20px;
+    border-radius: 12px; text-decoration: none;
+    transition: transform 0.15s;
+    min-width: 200px;
+  }
+  .store-btn.disabled {
+    background: #475569; cursor: not-allowed; opacity: 0.85;
+  }
+  .store-btn:hover:not(.disabled) { transform: translateY(-2px); }
+  .store-btn svg { width: 28px; height: 28px; flex-shrink: 0; }
+  .store-btn .meta { line-height: 1.15; }
+  .store-btn .meta small { display: block; font-size: 10px; font-weight: 500; opacity: 0.7; letter-spacing: 0.06em; text-transform: uppercase; }
+  .store-btn .meta strong { display: block; font-size: 15px; font-weight: 600; }
+
+  /* Section base */
+  section.section {
+    padding: 80px 24px;
+  }
+  .container { max-width: 1180px; margin: 0 auto; }
+  h2 {
+    font-size: 38px; font-weight: 800; letter-spacing: -0.025em;
+    line-height: 1.15; margin-bottom: 16px;
+  }
+  h2 span { color: var(--brand); }
+  .section-lead {
+    font-size: 17px; color: var(--text-secondary);
+    max-width: 640px; margin-bottom: 56px; line-height: 1.6;
+  }
+
+  /* Features (3 paywall pillars expanded) */
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .feature-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 28px 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(15,23,42,0.08); }
+  .feature-icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: var(--brand-light); color: var(--brand);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+  }
+  .feature-icon .ms { font-size: 30px; }
+  .feature-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.015em; }
+  .feature-card p { font-size: 14.5px; color: var(--text-secondary); line-height: 1.65; }
+
+  /* Screenshots showcase */
+  section.showcase { background: var(--surface-muted); }
+  .showcase-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px;
+    margin-top: 12px;
+  }
+  .ss-card {
+    text-align: center;
+  }
+  .ss-card .phone { margin-bottom: 24px; max-width: 260px; }
+  .ss-card h4 {
+    font-size: 17px; font-weight: 700; margin-bottom: 6px;
+  }
+  .ss-card p { font-size: 13.5px; color: var(--text-secondary); padding: 0 16px; line-height: 1.6; }
+
+  /* Pro */
+  section.pro {
+    background: linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%);
+    color: white;
+  }
+  section.pro .inner {
+    display: grid; grid-template-columns: 1fr 0.9fr; gap: 64px; align-items: center;
+  }
+  section.pro h2 { color: white; }
+  section.pro h2 span { color: #A7F3D0; }
+  section.pro p.lead { font-size: 17px; color: rgba(255,255,255,0.85); margin-bottom: 28px; max-width: 480px; line-height: 1.6; }
+  .pro-points { list-style: none; }
+  .pro-points li {
+    padding: 8px 0; color: rgba(255,255,255,0.92); font-size: 15px;
+    display: flex; gap: 10px; align-items: center;
+  }
+  .pro-points li::before {
+    content: "✓"; color: #A7F3D0; font-weight: 700; font-size: 18px;
+  }
+  section.pro .phone { max-width: 320px; }
+
+  /* CTA */
+  section.cta {
+    text-align: center; padding: 90px 24px;
+    background: var(--brand-light);
+  }
+  section.cta h2 { margin-bottom: 12px; }
+  section.cta p { color: var(--text-secondary); font-size: 17px; margin-bottom: 32px; }
+  section.cta .stores { justify-content: center; }
+
+  /* Footer */
+  footer {
+    background: #0F172A; color: #CBD5E1;
+    padding: 64px 24px 32px;
+  }
+  footer .inner { max-width: 1180px; margin: 0 auto; }
+  .footer-grid {
+    display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px;
+    margin-bottom: 48px;
+  }
+  .footer-brand .logo { color: white; }
+  .footer-brand p { font-size: 13.5px; color: #94A3B8; margin-top: 16px; max-width: 280px; line-height: 1.65; }
+  footer h5 { color: white; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 18px; }
+  footer ul { list-style: none; }
+  footer li { margin-bottom: 10px; }
+  footer a {
+    color: #94A3B8; text-decoration: none; font-size: 14px;
+    transition: color 0.15s;
+  }
+  footer a:hover { color: white; }
+  .footer-bottom {
+    border-top: 1px solid #1E293B; padding-top: 28px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: #64748B;
+  }
+  footer .pill {
+    display: inline-block; background: #1E293B; color: #94A3B8;
+    padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 6px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .hero .inner { grid-template-columns: 1fr; gap: 40px; }
+    h1 { font-size: 42px; }
+    .features { grid-template-columns: 1fr; }
+    .showcase-grid { grid-template-columns: 1fr; gap: 40px; }
+    section.pro .inner { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    nav.top ul { gap: 18px; }
+    nav.top .desktop-only { display: none; }
+  }
 </style>
 </head>
 <body>
-<h1>FitWoW</h1>
-<p class="tagline">AI-assisted fitness training</p>
 
-<section>
-    <h2>iOS</h2>
-    <nav>
-        <a href="/legal/ios/privacy.html">Privacy Policy</a>
-        <a href="/legal/ios/terms.html">Terms of Service</a>
-        <a href="/legal/ios/support.html">Support</a>
-    </nav>
+<!-- NAV -->
+<nav class="top">
+  <div class="inner">
+    <a href="#" class="logo"><img src="assets/logo.png" alt="FitWoW logo">FitWoW</a>
+    <ul>
+      <li class="desktop-only"><a href="#features">Features</a></li>
+      <li class="desktop-only"><a href="#screenshots">Screenshots</a></li>
+      <li class="desktop-only"><a href="#pro">Pro</a></li>
+      <li><a href="#download" class="btn-cta">Download</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="inner">
+    <div>
+      <div class="eyebrow">AI-Powered Fitness</div>
+      <h1>A coach in<br>your <span>pocket.</span></h1>
+      <p class="lead">FitWoW turns your iPhone camera into a personal training assistant — counting reps, grading form, and tracking progress so you can focus on the lift.</p>
+
+      <div class="hero-pillars">
+        <div class="hero-pillar">
+          <div class="icon"><span class="ms">directions_run</span></div>
+          <div class="txt">
+            <strong>AI Auto-Counting</strong>
+            <span>Accurate real-time rep detection.</span>
+          </div>
+        </div>
+        <div class="hero-pillar">
+          <div class="icon"><span class="ms">trending_up</span></div>
+          <div class="txt">
+            <strong>Advanced Workout Insights</strong>
+            <span>Deep performance analytics &amp; trends.</span>
+          </div>
+        </div>
+        <div class="hero-pillar">
+          <div class="icon"><span class="ms">fitness_center</span></div>
+          <div class="txt">
+            <strong>Enhanced Exercise Library</strong>
+            <span>Automated motion with highlighted targeted muscle group.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stores">
+        <a href="#" class="store-btn">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+          <span class="meta"><small>Download on the</small><strong>App Store</strong></span>
+        </a>
+        <a href="#" class="store-btn disabled">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M3.609 1.814 13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a.996.996 0 0 1 .609-.92zm10.89 10.893 2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198 2.807 1.626a1 1 0 0 1 0 1.732l-2.808 1.626L15.207 12l2.491-2.491zM5.864 2.658 16.802 8.99l-2.302 2.302L5.864 2.658z"/></svg>
+          <span class="meta"><small>Coming soon</small><strong>Google Play</strong></span>
+        </a>
+      </div>
+    </div>
+    <div>
+      <div class="phone lg">
+        <img src="assets/screenshots/01_home.png" alt="FitWoW main screen showing AI rep counter">
+      </div>
+    </div>
+  </div>
 </section>
 
-<section>
-    <h2>Android</h2>
-    <nav>
-        <a class="disabled" href="#">Privacy Policy (Coming soon)</a>
-        <a class="disabled" href="#">Terms of Service (Coming soon)</a>
-        <a class="disabled" href="#">Support (Coming soon)</a>
-    </nav>
+<!-- FEATURES (3 pillars expanded) -->
+<section class="section" id="features">
+  <div class="container">
+    <h2>Three pillars. <span>Zero fluff.</span></h2>
+    <p class="section-lead">Everything FitWoW does is in service of one thing — turning strength training into measurable progress.</p>
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon"><span class="ms">directions_run</span></div>
+        <h3>AI Auto-Counting</h3>
+        <p>On-device computer vision detects every rep with sub-second latency. No wearables, no Bluetooth pairing — prop your phone and start lifting.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><span class="ms">trending_up</span></div>
+        <h3>Advanced Workout Insights</h3>
+        <p>Deep performance analytics across every set. Weekly volume, trend lines, per-exercise PR history — the data that actually answers "am I getting stronger?"</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><span class="ms">fitness_center</span></div>
+        <h3>Enhanced Exercise Library</h3>
+        <p>Curated catalog with automated motion and highlighted targeted muscle group. Pick what fits your training day with reference demos for every lift.</p>
+      </div>
+    </div>
+  </div>
 </section>
 
-<section>
-    <h2>Company</h2>
-    <nav>
-        <a href="/legal/about.html">About Us</a>
-    </nav>
+<!-- SCREENSHOTS -->
+<section class="section showcase" id="screenshots">
+  <div class="container">
+    <h2>See it in <span>action.</span></h2>
+    <p class="section-lead">From picking your exercises to reviewing your form — here's what the workflow looks like.</p>
+    <div class="showcase-grid">
+      <div class="ss-card">
+        <div class="phone">
+          <img src="assets/screenshots/01_home.png" alt="Home screen">
+        </div>
+        <h4>One-Tap Start</h4>
+        <p>Open, prop your phone, tap Start. No checklist, no pairing.</p>
+      </div>
+      <div class="ss-card">
+        <div class="phone">
+          <img src="assets/screenshots/02_exercise_library.png" alt="Exercise library">
+        </div>
+        <h4>Exercise Library</h4>
+        <p>Curated catalog with reference demos for every lift.</p>
+      </div>
+      <div class="ss-card">
+        <div class="phone">
+          <img src="assets/screenshots/03_calibration.png" alt="Calibration setup">
+        </div>
+        <h4>Smart Setup</h4>
+        <p>Camera calibration in seconds. Configure sets, reps, rest, weight.</p>
+      </div>
+      <div class="ss-card">
+        <div class="phone">
+          <img src="assets/screenshots/04_recording.png" alt="Recording with AI counter">
+        </div>
+        <h4>Live Counting</h4>
+        <p>Real-time rep counter overlay on your video. Sub-second latency.</p>
+      </div>
+      <div class="ss-card">
+        <div class="phone">
+          <img src="assets/screenshots/05_report.png" alt="Workout report">
+        </div>
+        <h4>Workout Reports</h4>
+        <p>Set-by-set breakdowns, form analysis, and volume tracking.</p>
+      </div>
+      <div class="ss-card">
+        <div class="phone">
+          <img src="assets/screenshots/06_paywall.png" alt="Pro plans">
+        </div>
+        <h4>Pro Plans</h4>
+        <p>Monthly or 10-session pass to unlock unlimited AI analyses.</p>
+      </div>
+    </div>
+  </div>
 </section>
 
+<!-- PRO -->
+<section class="section pro" id="pro">
+  <div class="container">
+    <div class="inner">
+      <div>
+        <div class="eyebrow" style="color: #A7F3D0;">FitWoW Pro</div>
+        <h2>Unlock your <span>peak performance.</span></h2>
+        <p class="lead">FitWoW is free to start. Pro adds the AI analyses that turn workouts into measurable progress.</p>
+        <ul class="pro-points">
+          <li>Unlimited AI form analyses</li>
+          <li>Advanced workout insights and weekly trends</li>
+          <li>Priority access to new exercise patterns</li>
+          <li>Cancel anytime — pay monthly or by session</li>
+        </ul>
+      </div>
+      <div>
+        <div class="phone">
+          <img src="assets/screenshots/06_paywall.png" alt="FitWoW Pro plans">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="download">
+  <div class="container">
+    <h2>Train with <span>FitWoW</span> today.</h2>
+    <p>Available on iPhone — Google Play coming soon.</p>
+    <div class="stores">
+      <a href="#" class="store-btn">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+        <span class="meta"><small>Download on the</small><strong>App Store</strong></span>
+      </a>
+      <a href="#" class="store-btn disabled">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M3.609 1.814 13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a.996.996 0 0 1 .609-.92zm10.89 10.893 2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198 2.807 1.626a1 1 0 0 1 0 1.732l-2.808 1.626L15.207 12l2.491-2.491zM5.864 2.658 16.802 8.99l-2.302 2.302L5.864 2.658z"/></svg>
+        <span class="meta"><small>Coming soon</small><strong>Google Play</strong></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
 <footer>
-    Contact: fitwow2026@gmail.com
+  <div class="inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="logo" style="color:white;font-size:22px;"><img src="assets/logo.png" alt="FitWoW logo" style="width:36px;height:36px;">FitWoW</a>
+        <p>AI-assisted fitness training. Built for strength, powered by your iPhone camera.</p>
+      </div>
+      <div>
+        <h5>iOS</h5>
+        <ul>
+          <li><a href="/legal/ios/privacy.html">Privacy Policy</a></li>
+          <li><a href="/legal/ios/terms.html">Terms of Service</a></li>
+          <li><a href="/legal/ios/support.html">Support</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Android <span class="pill">Coming Soon</span></h5>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Support</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Company</h5>
+        <ul>
+          <li><a href="/legal/about.html">About Us</a></li>
+          <li><a href="mailto:fitwow2026@gmail.com">fitwow2026@gmail.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 FitWoW. All rights reserved.</span>
+      <span>Made with ☕ for strength training.</span>
+    </div>
+  </div>
 </footer>
+
 </body>
 </html>
